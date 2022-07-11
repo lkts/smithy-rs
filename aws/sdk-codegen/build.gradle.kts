@@ -46,12 +46,12 @@ val generateAwsSdkVersion by tasks.registering {
 }
 
 tasks.compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
     dependsOn(generateAwsSdkVersion)
 }
 
 tasks.compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }
 
 // Reusable license copySpec
