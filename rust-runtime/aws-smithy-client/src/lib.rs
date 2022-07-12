@@ -36,6 +36,7 @@ pub mod dvr;
 pub mod test_connection;
 
 pub mod http_connector;
+pub mod pool;
 
 #[cfg(feature = "client-hyper")]
 pub mod hyper_ext;

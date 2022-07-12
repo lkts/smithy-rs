@@ -313,6 +313,32 @@ class FluentClientGenerator(
     private val runtimeConfig = coreCodegenContext.runtimeConfig
     private val core = FluentClientCore(model)
 
+    private val codegenScope = arrayOf(
+        "client" to clientDep.asType(),
+        "connectorKey" to RuntimeType("ConnectorKey", clientDep, "aws_smithy_client::http_connector"),
+        "dynConnector" to RuntimeType("DynConnector", clientDep, "aws_smithy_client::erase"),
+        "dynMiddleware" to RuntimeType("DynMiddleware", clientDep, "aws_smithy_client::erase"),
+        "generics_decl" to generics.decl,
+        "httpConnector" to RuntimeType("HttpConnector", clientDep, "aws_smithy_client::http_connector"),
+        "httpConnectorError" to RuntimeType("HttpConnectorError", clientDep, "aws_smithy_client::http_connector"),
+        "httpVersion" to RuntimeType("Version", CargoDependency.Http, "http::version"),
+        "httpVersionList" to RuntimeType("HttpVersionList", clientDep, "aws_smithy_http::http_versions"),
+        "makeConnectorSettings" to RuntimeType("MakeConnectorSettings", clientDep, "aws_smithy_client::http_connector"),
+        "rwLock" to RuntimeType("RwLock", CargoDependency.Tokio.withFeature("sync"), "tokio::sync"),
+        "sdk_err" to CargoDependency.SmithyHttp(runtimeConfig).asType().copy(name = "result::SdkError"),
+        "smithy_inst" to generics.smithyInst,
+        "client_docs" to writable
+        {
+            customizations.forEach {
+                it.section(
+                    FluentClientSection.FluentClientDocs(
+                        serviceShape
+                    )
+                )(this)
+            }
+        }
+    )
+
     fun render(crate: RustCrate) {
         crate.withModule(clientModule) { writer ->
             renderFluentClient(writer)
@@ -322,63 +348,21 @@ class FluentClientGenerator(
     private fun renderFluentClient(writer: RustWriter) {
         writer.rustTemplate(
             """
-            ##[derive(Debug)]
-            pub(crate) struct Handle#{generics_decl:W} {
-                pub(crate) client: #{client}::Client#{smithy_inst:W},
-                pub(crate) conf: crate::Config,
-            }
-
             #{client_docs:W}
-            ##[derive(std::fmt::Debug)]
+            ##[derive(Debug, Clone)]
             pub struct Client#{generics_decl:W} {
-                handle: std::sync::Arc<Handle${generics.inst}>
+                smithy_clients: std::sync::Arc<SmithyClientPool${generics.inst}>,
+                // TODO insert this with string formatting instead
+                middleware: crate::middleware::DefaultMiddleware,
             }
-
-            impl${generics.inst} std::clone::Clone for Client${generics.inst} {
-                fn clone(&self) -> Self {
-                    Self { handle: self.handle.clone() }
-                }
-            }
-
             ##[doc(inline)]
             pub use #{client}::Builder;
-
-            impl${generics.inst} From<#{client}::Client#{smithy_inst:W}> for Client${generics.inst} {
-                fn from(client: #{client}::Client#{smithy_inst:W}) -> Self {
-                    Self::with_config(client, crate::Config::builder().build())
-                }
-            }
-
             impl${generics.inst} Client${generics.inst} {
-                /// Creates a client with the given service configuration.
-                pub fn with_config(client: #{client}::Client#{smithy_inst:W}, conf: crate::Config) -> Self {
-                    Self {
-                        handle: std::sync::Arc::new(Handle {
-                            client,
-                            conf,
-                        })
-                    }
-                }
-
                 /// Returns the client's configuration.
-                pub fn conf(&self) -> &crate::Config {
-                    &self.handle.conf
-                }
+                pub fn conf(&self) -> &crate::Config { &self.smithy_clients.conf }
             }
             """,
-            "generics_decl" to generics.decl,
-            "smithy_inst" to generics.smithyInst,
-            "client" to clientDep.asType(),
-            "client_docs" to writable
-            {
-                customizations.forEach {
-                    it.section(
-                        FluentClientSection.FluentClientDocs(
-                            serviceShape
-                        )
-                    )(this)
-                }
-            },
+            *codegenScope,
         )
         writer.rustBlockTemplate(
             "impl${generics.inst} Client${generics.inst} #{bounds:W}",

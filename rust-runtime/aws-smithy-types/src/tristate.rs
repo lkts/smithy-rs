@@ -9,7 +9,7 @@
 ///
 /// If someone explicitly disables something, we don't need to warn them that it may be missing. This
 /// enum impls `From`/`Into` `Option<T>` for ease of use.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub enum TriState<T> {
     /// This variant represents something that was unset by default
     Unset,

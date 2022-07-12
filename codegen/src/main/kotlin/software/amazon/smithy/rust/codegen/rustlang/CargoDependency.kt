@@ -205,6 +205,7 @@ data class CargoDependency(
         val Regex: CargoDependency = CargoDependency("regex", CratesIo("1"))
         val Ring: CargoDependency = CargoDependency("ring", CratesIo("0.16"))
         val TempFile: CargoDependency = CargoDependency("temp-file", CratesIo("0.1.6"), scope = DependencyScope.Dev)
+        val Tokio: CargoDependency = CargoDependency("tokio", CratesIo("1.19"))
         val TokioStream: CargoDependency = CargoDependency("tokio-stream", CratesIo("0.1.7"))
         val Tower: CargoDependency = CargoDependency("tower", CratesIo("0.4"))
         val Tracing: CargoDependency = CargoDependency("tracing", CratesIo("0.1"))
