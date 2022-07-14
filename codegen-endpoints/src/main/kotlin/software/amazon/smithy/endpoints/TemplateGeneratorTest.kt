@@ -19,18 +19,18 @@ internal class TemplateGeneratorTest {
     private fun assertTemplateEquals(template: String, result: String) {
         val literalTemplate = Template.fromString(template)
         // For testing,
-        val exprFn = { expr: Expr, ownership: ExprGenerator.Ownership ->
+        val exprFn = { expr: Expr, ownership: Ownership ->
             writable {
                 rust(
                     (expr.toString().uppercase() + ownership).dq()
                 )
-                if (ownership == ExprGenerator.Ownership.Owned) {
+                if (ownership == Ownership.Owned) {
                     rust(".to_string()")
                 }
             }
         }
-        val borrowedGenerator = TemplateGenerator(ExprGenerator.Ownership.Borrowed, exprFn)
-        val ownedGenerator = TemplateGenerator(ExprGenerator.Ownership.Owned, exprFn)
+        val borrowedGenerator = TemplateGenerator(Ownership.Borrowed, exprFn)
+        val ownedGenerator = TemplateGenerator(Ownership.Owned, exprFn)
         val project = TestWorkspace.testProject()
         project.unitTest {
             rust(

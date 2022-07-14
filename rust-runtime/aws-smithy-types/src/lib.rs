@@ -76,6 +76,18 @@ pub enum Document {
     Null,
 }
 
+impl From<String> for Document {
+    fn from(s: String) -> Self {
+        Self::String(s)
+    }
+}
+
+impl From<bool> for Document {
+    fn from(b: bool) -> Self {
+        Self::Bool(b)
+    }
+}
+
 /// A number type that implements Javascript / JSON semantics, modeled on serde_json:
 /// <https://docs.serde.rs/src/serde_json/number.rs.html#20-22>
 #[derive(Debug, Clone, Copy, PartialEq)]

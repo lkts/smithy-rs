@@ -30,13 +30,13 @@ import software.amazon.smithy.rust.codegen.util.dq
  * ```
  */
 class TemplateGenerator(
-    private val ownership: ExprGenerator.Ownership,
-    private val exprGenerator: (Expr, ExprGenerator.Ownership) -> Writable
+    private val ownership: Ownership,
+    private val exprGenerator: (Expr, Ownership) -> Writable
 ) : TemplateVisitor<Writable> {
     override fun visitStaticTemplate(value: String) = writable {
         // In the case of a static template, return the literal string, eg. `"foo"`.
         rust(value.dq())
-        if (ownership == ExprGenerator.Ownership.Owned) {
+        if (ownership == Ownership.Owned) {
             rust(".to_string()")
         }
     }
@@ -51,11 +51,11 @@ class TemplateGenerator(
 
     override fun visitDynamicElement(expr: Expr) = writable {
         // we don't need to own the argument to push_str
-        rust("out.push_str(#W);", exprGenerator(expr, ExprGenerator.Ownership.Borrowed))
+        rust("out.push_str(#W);", exprGenerator(expr, Ownership.Borrowed))
     }
 
     override fun startMultipartTemplate() = writable {
-        if (ownership == ExprGenerator.Ownership.Borrowed) {
+        if (ownership == Ownership.Borrowed) {
             rust("&")
         }
         rust("{ let mut out = String::new();")
