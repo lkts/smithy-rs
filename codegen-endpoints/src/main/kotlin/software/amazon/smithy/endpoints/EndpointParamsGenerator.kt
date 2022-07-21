@@ -6,12 +6,14 @@
 package software.amazon.smithy.endpoints
 
 import software.amazon.smithy.aws.reterminus.EndpointRuleset
+import software.amazon.smithy.aws.reterminus.eval.Value
 import software.amazon.smithy.aws.reterminus.lang.Identifier
 import software.amazon.smithy.aws.reterminus.lang.parameters.Parameter
 import software.amazon.smithy.aws.reterminus.lang.parameters.ParameterType
 import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.rust.codegen.rustlang.Attribute
 import software.amazon.smithy.rust.codegen.rustlang.RustModule
+import software.amazon.smithy.rust.codegen.rustlang.RustReservedWords
 import software.amazon.smithy.rust.codegen.rustlang.RustType
 import software.amazon.smithy.rust.codegen.rustlang.RustWriter
 import software.amazon.smithy.rust.codegen.rustlang.asDeref
@@ -41,7 +43,7 @@ import software.amazon.smithy.rust.codegen.util.toSnakeCase
  * Utility function to convert an [Identifier] into a valid Rust identifier (snake case)
  */
 fun Identifier.rustName(): String {
-    return this.toString().toSnakeCase()
+    return RustReservedWords.escapeIfNeeded(this.toString().toSnakeCase())
 }
 
 /**
@@ -63,7 +65,7 @@ fun Parameter.symbol(): Symbol {
     return Symbol.builder().rustType(rustType).build().letIf(!this.isRequired) { it.makeOptional() }
 }
 
-val EndpointsModule = RustModule.public("endpoint", "Endpoint resolution functionality")
+val EndpointsModule = RustModule.public("endpoint_resolver", "Endpoint resolution functionality")
 
 /** Endpoint Parameters generator. Intended to be generated into the `endpoint` module */
 class EndpointParamsGenerator(private val endpointRules: EndpointRuleset) {
@@ -175,6 +177,14 @@ class EndpointParamsGenerator(private val endpointRules: EndpointRuleset) {
         }
     }
 
+    private fun value(value: Value): String {
+        return when (value) {
+            is Value.Str -> value.value().dq() + ".to_string()"
+            is Value.Bool -> value.expectBool().toString()
+            else -> TODO("$value")
+        }
+    }
+
     private fun generateEndpointParamsBuilder(rustWriter: RustWriter) {
         rustWriter.docs("Builder for [`Params`]")
         Attribute.Derives(setOf(Debug, Default, PartialEq, Clone)).render(rustWriter)
@@ -198,7 +208,7 @@ class EndpointParamsGenerator(private val endpointRules: EndpointRuleset) {
                     rustBlockTemplate("#{Params}", "Params" to paramsStruct()) {
                         endpointRules.parameters.toList().forEach { parameter ->
                             rust("${parameter.memberName()}: self.${parameter.memberName()}")
-                            parameter.default.orNull()?.also { rust(".or(Some($it))") }
+                            parameter.default.orNull()?.also { default -> rust(".or(Some(${value(default)}))") }
                             if (parameter.isRequired) {
                                 rustTemplate(
                                     ".ok_or_else(||#{Error}::missing(${parameter.memberName().dq()}))?",

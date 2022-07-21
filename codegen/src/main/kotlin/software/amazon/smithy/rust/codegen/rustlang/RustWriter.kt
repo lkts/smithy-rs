@@ -269,6 +269,16 @@ fun <T : AbstractCodeWriter<T>> T.docs(text: String, vararg args: Any, newlinePr
     return this
 }
 
+fun join(exprs: List<Writable>, seperator: String) = join(exprs, writable { writeInline(seperator) })
+fun join(exprs: List<Writable>, seperator: Writable) = writable {
+    exprs.withIndex().forEach { v ->
+        v.value(this)
+        if (v.index != exprs.lastIndex) {
+            seperator(this)
+        }
+    }
+}
+
 /** Escape the [expressionStart] character to avoid problems during formatting */
 fun <T : AbstractCodeWriter<T>> T.escape(text: String): String =
     text.replace("$expressionStart", "$expressionStart$expressionStart")

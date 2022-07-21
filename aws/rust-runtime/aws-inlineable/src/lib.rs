@@ -35,3 +35,6 @@ pub mod middleware;
 
 /// Strip prefixes from IDs returned by Route53 operations when those IDs are used to construct requests
 pub mod route53_resource_id_preprocessor;
+
+/// Endpoint utilities
+pub mod endpoint;

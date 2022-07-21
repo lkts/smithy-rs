@@ -190,6 +190,7 @@ data class CargoDependency(
     }
 
     companion object {
+        val Url: CargoDependency = CargoDependency("url", CratesIo("2.2.2"))
         val Bytes: CargoDependency = CargoDependency("bytes", CratesIo("1"))
         val BytesUtils: CargoDependency = CargoDependency("bytes-utils", CratesIo("0.1.1"))
         val FastRand: CargoDependency = CargoDependency("fastrand", CratesIo("1"))

@@ -92,7 +92,7 @@ object TestWorkspace {
     }
 
     @Suppress("NAME_SHADOWING")
-    fun testProject(symbolProvider: RustSymbolProvider? = null, debugMode: Boolean = false): TestWriterDelegator {
+    fun testProject(symbolProvider: RustSymbolProvider? = null, debugMode: Boolean = true): TestWriterDelegator {
         val subprojectDir = subproject()
         val symbolProvider = symbolProvider ?: object : RustSymbolProvider {
             override fun config(): SymbolVisitorConfig {
@@ -210,12 +210,13 @@ class TestWriterDelegator(
     }
 }
 
-fun TestWriterDelegator.unitTest(test: Writable) {
+fun TestWriterDelegator.unitTest(test: Writable): TestWriterDelegator {
     lib { writer ->
         writer.unitTest(writer.safeName("test")) {
             test(this)
         }
     }
+    return this
 }
 
 /**

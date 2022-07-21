@@ -63,8 +63,9 @@ open class RustCrate(
     /**
      * Write directly into lib.rs
      */
-    fun lib(moduleWriter: (RustWriter) -> Unit) {
+    fun lib(moduleWriter: (RustWriter) -> Unit): RustCrate {
         inner.useFileWriter("src/lib.rs", "crate", moduleWriter)
+        return this
     }
 
     fun mergeFeature(feature: Feature) {

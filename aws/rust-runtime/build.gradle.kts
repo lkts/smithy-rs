@@ -16,5 +16,7 @@ tasks.jar {
     from("./") {
         include("aws-inlineable/src/*.rs")
         include("aws-inlineable/Cargo.toml")
+        include("endpoints-inlineable/src/*.rs")
+        include("endpoints-inlineable/Cargo.toml")
     }
 }

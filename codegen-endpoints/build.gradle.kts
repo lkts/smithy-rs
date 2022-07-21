@@ -21,16 +21,21 @@ val smithyVersion: String by project
 val kotestVersion: String by project
 
 dependencies {
+
     implementation(project(":codegen"))
+    implementation(project(":aws:rust-runtime"))
     implementation("software.amazon.smithy:reterminus-core:0.2.0")
 
     implementation(project(":aws:rust-runtime"))
-    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    implementation("org.junit.jupiter:junit-jupiter:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("software.amazon.smithy:s3-rules:0.1.0")
 }
 
+configurations.implementation {
+    exclude(group = "brazil")
+}
 
 tasks.compileKotlin { kotlinOptions.jvmTarget = "17" }
 tasks.compileTestKotlin { kotlinOptions.jvmTarget = "17" }
